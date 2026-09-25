@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #121214;
+  --color-surface: #1a1a1e;
+  --color-surfaceHover: #25252b;
+  --color-border: #2e2e38;
+  --color-text: #e4e4e7;
+  --color-muted: #a1a1aa;
+}
+:root[data-theme='light'] {
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surfaceHover: #eef1f5;
+  --color-border: #d7dbe1;
+  --color-text: #1f2328;
+  --color-muted: #6b7280;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.cell-focus {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: -2px;
+  z-index: 10;
+}
+.cell-selected {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.6) !important;
+}
+
+.drop-indicator-top,
+.drop-indicator-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #3b82f6;
+  z-index: 30;
+  border-radius: 2px;
+}
+.drop-indicator-top {
+  top: -3px;
+}
+.drop-indicator-bottom {
+  bottom: -3px;
+}
+.drop-indicator-left,
+.drop-indicator-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #3b82f6;
+  z-index: 30;
+  border-radius: 2px;
+}
+.drop-indicator-left {
+  left: -3px;
+}
+.drop-indicator-right {
+  right: -3px;
+}

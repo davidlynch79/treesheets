@@ -1,7 +1,7 @@
 import { CellData, GridData } from './types';
 
 export function newEmptyCell(): CellData {
-  return { text: '', color: '', subgrid: null, childrenHidden: false, disableColors: false };
+  return { text: '', color: '', subgrid: null, childrenHidden: false, disableColors: true };
 }
 
 export function newEmptyGrid(): GridData {

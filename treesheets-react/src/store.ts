@@ -21,10 +21,10 @@ function initialData(): GridData {
             text: 'hello',
             color: '',
             subgrid: {
-              rows: [{ cells: [{ text: 'how are you', color: '', subgrid: null, childrenHidden: false, disableColors: false }] }],
+              rows: [{ cells: [{ text: 'how are you', color: '', subgrid: null, childrenHidden: false, disableColors: true }] }],
             },
             childrenHidden: false,
-            disableColors: false,
+            disableColors: true,
           },
         ],
       },
@@ -52,8 +52,8 @@ export class TreeSheetStore {
   shrinkToText = true;
   showGridLines = true;
   enterNextCell = true;
-  enterAddCellAtEnd = false;
-  enterAddSibling = false;
+  enterAddCellAtEnd = true;
+  enterAddSibling = true;
   helpPanelOpen = true;
 
   globalPadding = 0;
@@ -158,6 +158,10 @@ export class TreeSheetStore {
     return getCellByPath(this.rootData, this.activePath);
   }
 
+  get activeCellColorsDisabled(): boolean {
+    return this.getCurrentCell()?.disableColors ?? false;
+  }
+
   // ---------- appearance / settings ----------
   updatePadding = (val: number): void => {
     this.globalPadding = val;
@@ -213,10 +217,10 @@ export class TreeSheetStore {
     this.helpPanelOpen = !this.helpPanelOpen;
     this.notify();
   };
-  toggleDisableColorsOnActive = (): void => {
+  setDisableColorsOnActive = (disabled: boolean): void => {
     this.saveState();
     const cell = this.getCurrentCell();
-    if (cell) cell.disableColors = !cell.disableColors;
+    if (cell) cell.disableColors = disabled;
     this.notify();
   };
   setDragMode = (mode: DragModifier): void => {
@@ -361,10 +365,10 @@ export class TreeSheetStore {
     this.saveState();
     const info = findGridAndOwner(this.rootData, this.activePath, 'root');
     if (info && info.ownerCell) {
-      info.ownerCell.subgrid = { rows: [{ cells: [{ text: '', color: '', subgrid: info.ownerCell.subgrid, childrenHidden: false, disableColors: false }] }] };
+      info.ownerCell.subgrid = { rows: [{ cells: [{ text: '', color: '', subgrid: info.ownerCell.subgrid, childrenHidden: false, disableColors: true }] }] };
       this.activePath = info.ownerCellPath!;
     } else {
-      this.rootData = { rows: [{ cells: [{ text: '', color: '', subgrid: this.rootData, childrenHidden: false, disableColors: false }] }] };
+      this.rootData = { rows: [{ cells: [{ text: '', color: '', subgrid: this.rootData, childrenHidden: false, disableColors: true }] }] };
       this.activePath = 'root_r0c0';
     }
     this.selectedPaths = new Set([this.activePath]);
@@ -380,7 +384,7 @@ export class TreeSheetStore {
     const r = parseInt(m[1], 10);
     const c = parseInt(m[2], 10);
     const oldCell = info.grid.rows[r].cells[c];
-    info.grid.rows[r].cells[c] = { text: '', color: '', subgrid: { rows: [{ cells: [oldCell] }] }, childrenHidden: false, disableColors: false };
+    info.grid.rows[r].cells[c] = { text: '', color: '', subgrid: { rows: [{ cells: [oldCell] }] }, childrenHidden: false, disableColors: true };
     this.selectedPaths = new Set([this.activePath]);
     this.isEditing = false;
     this.notify();
@@ -514,7 +518,7 @@ export class TreeSheetStore {
           c.color = '';
           c.subgrid = null;
           c.childrenHidden = false;
-          c.disableColors = false;
+          c.disableColors = true;
         }
       });
     }

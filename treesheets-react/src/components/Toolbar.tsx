@@ -24,7 +24,7 @@ export function Toolbar() {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
   const importSettingsRef = useRef<HTMLInputElement>(null);
-  const [exportSettingsToo, setExportSettingsToo] = useState(false);
+  const [exportSettingsToo, setExportSettingsToo] = useState(true);
 
   const dragState = useRef({ dragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 });
 
@@ -320,7 +320,12 @@ export function Toolbar() {
               <span>Grid Lines</span>
             </label>
             <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" defaultChecked onChange={() => store.toggleDisableColorsOnActive()} className="accent-blue-500" />
+              <input
+                type="checkbox"
+                checked={store.activeCellColorsDisabled}
+                onChange={(e) => store.setDisableColorsOnActive(e.target.checked)}
+                className="accent-blue-500"
+              />
               <span>No Colors</span>
             </label>
             <label className="flex items-center space-x-1.5 cursor-pointer">

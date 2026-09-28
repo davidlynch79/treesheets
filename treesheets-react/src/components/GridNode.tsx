@@ -116,7 +116,8 @@ function Cell({ cell, cellPath, prefix, inheritedDisableColors }: CellProps) {
   useEffect(() => {
     if (isEditingThisCell && textareaRef.current) {
       const ta = textareaRef.current;
-      ta.style.height = `${Math.max(38, ((cell.text || '').match(/\n/g) || []).length * 20 + 10)}px`;
+      const lineCount = (cell.text || '').split('\n').length;
+      ta.style.height = `${Math.max(38, lineCount * store.fontSize * 1.6 + 12)}px`;
       const id = setTimeout(() => {
         ta.focus();
         ta.setSelectionRange(ta.value.length, ta.value.length);
@@ -124,7 +125,7 @@ function Cell({ cell, cellPath, prefix, inheritedDisableColors }: CellProps) {
       return () => clearTimeout(id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditingThisCell]);
+  }, [isEditingThisCell, store.fontSize]);
 
   // Refocus the cell wrapper after leaving edit mode while it's still the active cell
   // (mirrors setTimeout(() => wrapper.focus(), 10) after Escape / non-"next cell" Enter).
@@ -235,7 +236,8 @@ function Cell({ cell, cellPath, prefix, inheritedDisableColors }: CellProps) {
             ref={textareaRef}
             id="active-textarea"
             defaultValue={cell.text || ''}
-            className="bg-dark-surface text-dark-text text-xs p-1.5 rounded border border-emerald-500 outline-none resize-y min-h-[36px] w-full font-sans leading-relaxed"
+            className="bg-dark-surface text-dark-text p-1.5 rounded border border-emerald-500 outline-none resize-y min-h-[36px] w-full font-sans leading-relaxed"
+            style={{ fontSize: `${store.fontSize}px` }}
             onChange={(e) => store.updateEditingTextSilent(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -254,7 +256,7 @@ function Cell({ cell, cellPath, prefix, inheritedDisableColors }: CellProps) {
             }}
           />
         ) : (
-          <div className="text-xs text-dark-text whitespace-pre-wrap break-words px-0.5 leading-relaxed cursor-default">
+          <div className="text-dark-text whitespace-pre-wrap break-words px-0.5 leading-relaxed cursor-default" style={{ fontSize: `${store.fontSize}px` }}>
             {cell.text || ''}
           </div>
         )}

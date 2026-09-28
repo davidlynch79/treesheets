@@ -25,6 +25,7 @@ export interface ClipboardEntry {
 
 export interface SettingsExport {
   treeScale: number;
+  fontSize: number;
   menuWidth: number;
   helpWidth: number;
   globalPadding: number;

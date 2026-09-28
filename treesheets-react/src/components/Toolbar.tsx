@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, Minus, Plus } from 'lucide-react';
 import { useStore } from '../StoreContext';
 
 const SWATCHES: { hex: string; className: string }[] = [
@@ -203,6 +203,30 @@ export function Toolbar() {
 
         <div className="space-y-1 border-t border-dark-border pt-1">
           <div className="text-[9px] font-bold text-dark-muted uppercase px-0.5">Sizes & Zoom</div>
+          <div className="flex items-center justify-between bg-dark-surfaceHover p-1 rounded border border-dark-border">
+            <span className="text-[10px] text-dark-muted">Font Size</span>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => store.updateFontSize(store.fontSize - 1)}
+                disabled={store.fontSize <= 8}
+                title="Decrease font size"
+                aria-label="Decrease font size"
+                className="p-1 bg-dark-border hover:bg-dark-surface rounded text-dark-text disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Minus className="w-3 h-3" />
+              </button>
+              <span className="w-8 text-center text-[10px] font-bold text-dark-text">{store.fontSize}px</span>
+              <button
+                onClick={() => store.updateFontSize(store.fontSize + 1)}
+                disabled={store.fontSize >= 32}
+                title="Increase font size"
+                aria-label="Increase font size"
+                className="p-1 bg-dark-border hover:bg-dark-surface rounded text-dark-text disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
           <div className="flex flex-col space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border">
             <div className="flex justify-between text-[10px] text-dark-muted">
               <span>Tree Scale</span>

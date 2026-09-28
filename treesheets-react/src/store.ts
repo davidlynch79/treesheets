@@ -65,6 +65,7 @@ export class TreeSheetStore {
   activeDragModifier: DragModifier = '';
 
   treeScale = 100;
+  fontSize = 12;
   menuWidth = 224;
   helpWidth = 320;
 
@@ -164,6 +165,10 @@ export class TreeSheetStore {
   };
   updateTreeScale = (val: number): void => {
     this.treeScale = val;
+    this.notify();
+  };
+  updateFontSize = (val: number): void => {
+    this.fontSize = Math.max(8, Math.min(32, val));
     this.notify();
   };
   updateMenuWidth = (val: number): void => {
@@ -888,6 +893,7 @@ export class TreeSheetStore {
     if (exportSettingsToo) {
       const settingsData: SettingsExport = {
         treeScale: this.treeScale,
+        fontSize: this.fontSize,
         menuWidth: this.menuWidth,
         helpWidth: this.helpWidth,
         globalPadding: this.globalPadding,
@@ -939,6 +945,7 @@ export class TreeSheetStore {
         const s = JSON.parse(evt.target!.result as string);
         if (s && typeof s === 'object') {
           if (typeof s.treeScale === 'number') this.treeScale = s.treeScale;
+          if (typeof s.fontSize === 'number') this.fontSize = Math.max(8, Math.min(32, s.fontSize));
           if (typeof s.menuWidth === 'number') this.menuWidth = s.menuWidth;
           if (typeof s.helpWidth === 'number') this.helpWidth = s.helpWidth;
           if (typeof s.globalPadding === 'number') this.globalPadding = s.globalPadding;

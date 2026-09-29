@@ -17,7 +17,7 @@ function Workspace() {
     >
       <div className="transition-transform duration-75 origin-top-left" style={{ transform: `scale(${store.treeScale / 100})` }}>
         <div id="grid-root" className="shadow-2xl rounded-md border border-dark-border bg-dark-surface p-2 inline-block shrink-0">
-          <GridNode gridData={store.rootData} prefix="root" inheritedDisableColors={false} isRoot />
+          <GridNode gridData={store.rootData} prefix="root" isRoot />
         </div>
       </div>
     </main>
@@ -27,10 +27,10 @@ function Workspace() {
 function AppShell() {
   const store = useStore();
 
-  // Apply the light/dark theme attribute to <html>, matching the original.
+  // Apply the selected theme attribute to <html> so CSS variables update globally.
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', store.lightMode ? 'light' : 'dark');
-  }, [store.lightMode]);
+    document.documentElement.setAttribute('data-theme', store.blackMode ? 'black' : store.lightMode ? 'light' : 'dark');
+  }, [store.blackMode, store.lightMode]);
 
   // Global keyboard handling, ported from the original window keydown listener.
   useEffect(() => {

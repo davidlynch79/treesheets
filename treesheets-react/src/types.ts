@@ -1,9 +1,7 @@
 export interface CellData {
   text: string;
-  color: string;
   subgrid: GridData | null;
   childrenHidden: boolean;
-  disableColors: boolean;
 }
 
 export interface RowData {
@@ -30,6 +28,7 @@ export interface SettingsExport {
   helpWidth: number;
   globalPadding: number;
   lightMode: boolean;
+  blackMode?: boolean;
   showGridLines: boolean;
   enterNextCell: boolean;
   enterAddCellAtEnd: boolean;

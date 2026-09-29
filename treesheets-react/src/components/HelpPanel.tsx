@@ -57,7 +57,10 @@ export function HelpPanel() {
               <strong className="text-dark-text">'T':</strong> Transpose grid
             </li>
             <li>
-              <strong className="text-dark-text">'P':</strong> Add parent
+              <strong className="text-dark-text">'P':</strong> Add parent to the active cell
+            </li>
+            <li>
+              <strong className="text-dark-text">Ctrl+P:</strong> Add parent to the table
             </li>
           </ul>
         </div>

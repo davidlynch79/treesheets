@@ -1,6 +1,5 @@
 import { CellData, ClipboardEntry, DragModifier, DropMode, GridData, SettingsExport } from './types';
 import {
-  applyColorByPath,
   calculateRangeSelection,
   findGridAndOwner,
   findGridContainingPath,
@@ -19,12 +18,10 @@ function initialData(): GridData {
         cells: [
           {
             text: 'hello',
-            color: '',
             subgrid: {
-              rows: [{ cells: [{ text: 'how are you', color: '', subgrid: null, childrenHidden: false, disableColors: true }] }],
+              rows: [{ cells: [{ text: 'how are you', subgrid: null, childrenHidden: false }] }],
             },
             childrenHidden: false,
-            disableColors: true,
           },
         ],
       },
@@ -57,8 +54,9 @@ export class TreeSheetStore {
   navigateFutureEdgeCells = true;
   helpPanelOpen = true;
 
-  globalPadding = 0;
-  lightMode = true;
+  globalPadding = 3;
+  lightMode = false;
+  blackMode = false;
   compactGaps = true;
 
   history: string[] = [];
@@ -159,10 +157,6 @@ export class TreeSheetStore {
     return getCellByPath(this.rootData, this.activePath);
   }
 
-  get activeCellColorsDisabled(): boolean {
-    return this.getCurrentCell()?.disableColors ?? false;
-  }
-
   // ---------- appearance / settings ----------
   updatePadding = (val: number): void => {
     this.globalPadding = val;
@@ -209,9 +203,10 @@ export class TreeSheetStore {
     if (!val) this.activeGapPath = null;
     this.notify();
   };
-  toggleTheme = (): void => {
-    this.lightMode = !this.lightMode;
-    document.documentElement.setAttribute('data-theme', this.lightMode ? 'light' : 'dark');
+  setTheme = (theme: 'light' | 'dark' | 'black'): void => {
+    this.lightMode = theme === 'light';
+    this.blackMode = theme === 'black';
+    document.documentElement.setAttribute('data-theme', theme);
     this.notify();
   };
   toggleCompactGaps = (): void => {
@@ -221,12 +216,6 @@ export class TreeSheetStore {
   };
   toggleHelpPanel = (): void => {
     this.helpPanelOpen = !this.helpPanelOpen;
-    this.notify();
-  };
-  setDisableColorsOnActive = (disabled: boolean): void => {
-    this.saveState();
-    const cell = this.getCurrentCell();
-    if (cell) cell.disableColors = disabled;
     this.notify();
   };
   setDragMode = (mode: DragModifier): void => {
@@ -258,22 +247,13 @@ export class TreeSheetStore {
       const tc = getCellByPath(this.rootData, tPath);
       if (tc && clip) {
         tc.text = clip.cell.text;
-        tc.color = clip.cell.color;
         tc.childrenHidden = clip.cell.childrenHidden;
-        tc.disableColors = clip.cell.disableColors;
         tc.subgrid = clip.cell.subgrid ? JSON.parse(JSON.stringify(clip.cell.subgrid)) : null;
       }
     });
     this.notify();
   };
 
-  applyColor = (hex: string): void => {
-    this.saveState();
-    const color = hex === '#1e1e24' ? '' : hex;
-    this.selectedPaths.forEach((p) => applyColorByPath(this.rootData, p, color));
-    this.isEditing = false;
-    this.notify();
-  };
 
   // ---------- structure editing ----------
   menuClearCell = (): void => {
@@ -371,10 +351,10 @@ export class TreeSheetStore {
     this.saveState();
     const info = findGridAndOwner(this.rootData, this.activePath, 'root');
     if (info && info.ownerCell) {
-      info.ownerCell.subgrid = { rows: [{ cells: [{ text: '', color: '', subgrid: info.ownerCell.subgrid, childrenHidden: false, disableColors: true }] }] };
+      info.ownerCell.subgrid = { rows: [{ cells: [{ text: '', subgrid: info.ownerCell.subgrid, childrenHidden: false }] }] };
       this.activePath = info.ownerCellPath!;
     } else {
-      this.rootData = { rows: [{ cells: [{ text: '', color: '', subgrid: this.rootData, childrenHidden: false, disableColors: true }] }] };
+      this.rootData = { rows: [{ cells: [{ text: '', subgrid: this.rootData, childrenHidden: false }] }] };
       this.activePath = 'root_r0c0';
     }
     this.selectedPaths = new Set([this.activePath]);
@@ -390,7 +370,7 @@ export class TreeSheetStore {
     const r = parseInt(m[1], 10);
     const c = parseInt(m[2], 10);
     const oldCell = info.grid.rows[r].cells[c];
-    info.grid.rows[r].cells[c] = { text: '', color: '', subgrid: { rows: [{ cells: [oldCell] }] }, childrenHidden: false, disableColors: true };
+    info.grid.rows[r].cells[c] = { text: '', subgrid: { rows: [{ cells: [oldCell] }] }, childrenHidden: false };
     this.selectedPaths = new Set([this.activePath]);
     this.isEditing = false;
     this.notify();
@@ -521,10 +501,8 @@ export class TreeSheetStore {
         const c = getCellByPath(this.rootData, p);
         if (c) {
           c.text = '';
-          c.color = '';
           c.subgrid = null;
           c.childrenHidden = false;
-          c.disableColors = true;
         }
       });
     }
@@ -909,6 +887,7 @@ export class TreeSheetStore {
         helpWidth: this.helpWidth,
         globalPadding: this.globalPadding,
         lightMode: this.lightMode,
+        blackMode: this.blackMode,
         showGridLines: this.showGridLines,
         enterNextCell: this.enterNextCell,
         enterAddCellAtEnd: this.enterAddCellAtEnd,
@@ -963,8 +942,9 @@ export class TreeSheetStore {
           if (typeof s.globalPadding === 'number') this.globalPadding = s.globalPadding;
           if (typeof s.lightMode === 'boolean') {
             this.lightMode = s.lightMode;
-            document.documentElement.setAttribute('data-theme', this.lightMode ? 'light' : 'dark');
           }
+          if (typeof s.blackMode === 'boolean') this.blackMode = s.blackMode;
+          document.documentElement.setAttribute('data-theme', this.blackMode ? 'black' : this.lightMode ? 'light' : 'dark');
           if (typeof s.showGridLines === 'boolean') this.showGridLines = s.showGridLines;
           if (typeof s.enterNextCell === 'boolean') this.enterNextCell = s.enterNextCell;
           if (typeof s.enterAddCellAtEnd === 'boolean') this.enterAddCellAtEnd = s.enterAddCellAtEnd;

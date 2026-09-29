@@ -2,15 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { GripVertical, Minus, Plus } from 'lucide-react';
 import { useStore } from '../StoreContext';
 
-const SWATCHES: { hex: string; className: string }[] = [
-  { hex: '#1e1e24', className: 'bg-[#1e1e24] border border-dark-border' },
-  { hex: '#7f1d1d', className: 'bg-red-900' },
-  { hex: '#78350f', className: 'bg-amber-900' },
-  { hex: '#14532d', className: 'bg-emerald-900' },
-  { hex: '#1e3a8a', className: 'bg-blue-900' },
-  { hex: '#581c87', className: 'bg-purple-900' },
-];
-
 function modeButtonClass(active: boolean, kind: 'move' | 'x' | 'c'): string {
   const base = 'px-1 py-0.5 rounded border text-[10px] text-center transition';
   if (!active) return `${base} bg-dark-surfaceHover border-dark-border text-dark-muted hover:text-dark-text`;
@@ -290,14 +281,6 @@ export function Toolbar() {
               className="w-full accent-blue-500 h-1 bg-dark-border rounded cursor-pointer"
             />
           </div>
-          <div className="flex items-center justify-between bg-dark-bg border border-dark-border rounded p-1">
-            <span className="text-[10px] text-dark-muted">Color:</span>
-            <div className="flex items-center space-x-1">
-              {SWATCHES.map((s) => (
-                <button key={s.hex} onClick={() => store.applyColor(s.hex)} className={`w-3 h-3 rounded-full ${s.className}`} />
-              ))}
-            </div>
-          </div>
           <div className="space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border text-[10px]">
             <label className="flex items-center space-x-1.5 cursor-pointer">
               <input type="checkbox" checked={store.enterNextCell} onChange={(e) => store.toggleEnterNext(e.target.checked)} className="accent-blue-500" />
@@ -315,22 +298,21 @@ export function Toolbar() {
               <input type="checkbox" checked={store.navigateFutureEdgeCells} onChange={(e) => store.toggleNavigateFutureEdgeCells(e.target.checked)} className="accent-blue-500" />
               <span>Navigate Future Edge Cells</span>
             </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.lightMode} onChange={() => store.toggleTheme()} className="accent-blue-500" />
-              <span>Light Mode</span>
-            </label>
+            <div className="flex items-center space-x-2">
+              <span className="text-dark-muted">Theme</span>
+              <select
+                value={store.blackMode ? 'black' : store.lightMode ? 'light' : 'dark'}
+                onChange={(e) => store.setTheme(e.target.value as 'light' | 'dark' | 'black')}
+                className="flex-1 bg-dark-bg border border-dark-border rounded px-1 py-0.5 text-dark-text"
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="black">Black</option>
+              </select>
+            </div>
             <label className="flex items-center space-x-1.5 cursor-pointer">
               <input type="checkbox" checked={store.showGridLines} onChange={() => store.toggleGridLines()} className="accent-blue-500" />
               <span>Grid Lines</span>
-            </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={store.activeCellColorsDisabled}
-                onChange={(e) => store.setDisableColorsOnActive(e.target.checked)}
-                className="accent-blue-500"
-              />
-              <span>No Colors</span>
             </label>
             <label className="flex items-center space-x-1.5 cursor-pointer">
               <input type="checkbox" checked={store.shrinkToText} onChange={() => store.toggleShrinkToText()} className="accent-blue-500" />

@@ -1,7 +1,7 @@
 import { CellData, GridData } from './types';
 
 export function newEmptyCell(): CellData {
-  return { text: '', color: '', subgrid: null, childrenHidden: false, disableColors: true };
+  return { text: '', subgrid: null, childrenHidden: false };
 }
 
 export function newEmptyGrid(): GridData {
@@ -75,16 +75,6 @@ export function updateCellByPath(grid: GridData, targetPath: string, text: strin
       const path = `${prefix}_r${r}c${c}`;
       if (targetPath === path) cell.text = text;
       else if (cell.subgrid && targetPath.startsWith(path)) updateCellByPath(cell.subgrid, targetPath, text, path);
-    })
-  );
-}
-
-export function applyColorByPath(grid: GridData, targetPath: string, color: string, prefix = 'root'): void {
-  grid.rows.forEach((row, r) =>
-    row.cells.forEach((cell, c) => {
-      const path = `${prefix}_r${r}c${c}`;
-      if (targetPath === path) cell.color = color;
-      else if (cell.subgrid && targetPath.startsWith(path)) applyColorByPath(cell.subgrid, targetPath, color, path);
     })
   );
 }

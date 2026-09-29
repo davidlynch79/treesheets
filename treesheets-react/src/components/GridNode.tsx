@@ -6,7 +6,6 @@ import { TreeSheetStore } from '../store';
 interface GridNodeProps {
   gridData: GridData;
   prefix: string;
-  inheritedDisableColors: boolean;
   isRoot?: boolean;
 }
 
@@ -51,7 +50,7 @@ function GapBar({ prefix, index }: { prefix: string; index: number }) {
   );
 }
 
-export function GridNode({ gridData, prefix, inheritedDisableColors, isRoot = false }: GridNodeProps) {
+export function GridNode({ gridData, prefix, isRoot = false }: GridNodeProps) {
   const store = useStore();
   const cols = gridData.rows[0] ? gridData.rows[0].cells.length : 1;
   const gapV = Math.max(0, Math.round(store.globalPadding * 0.75));
@@ -75,7 +74,6 @@ export function GridNode({ gridData, prefix, inheritedDisableColors, isRoot = fa
               cell={cell}
               cellPath={`${prefix}_r${rIdx}c${cIdx}`}
               prefix={prefix}
-              inheritedDisableColors={inheritedDisableColors}
             />
           ))}
           {!store.compactGaps && <GapBar prefix={prefix} index={rIdx + 1} />}
@@ -89,10 +87,9 @@ interface CellProps {
   cell: CellData;
   cellPath: string;
   prefix: string;
-  inheritedDisableColors: boolean;
 }
 
-function Cell({ cell, cellPath, prefix, inheritedDisableColors }: CellProps) {
+function Cell({ cell, cellPath, prefix }: CellProps) {
   const store = useStore();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -149,7 +146,6 @@ function Cell({ cell, cellPath, prefix, inheritedDisableColors }: CellProps) {
     padding: `${vPad}px ${hPad}px`,
   };
   if (!store.shrinkToText) style.minHeight = `${Math.max(28, store.globalPadding * 6 + 12)}px`;
-  if (cell.color && !(inheritedDisableColors || cell.disableColors)) style.backgroundColor = cell.color;
   if (shadow) style.boxShadow = shadow;
 
   const highlightClass =
@@ -262,16 +258,12 @@ function Cell({ cell, cellPath, prefix, inheritedDisableColors }: CellProps) {
         )}
       </div>
 
-      {cell.disableColors && (
-        <div className="absolute top-1 right-3 w-1.5 h-1.5 bg-yellow-400 rounded-full" title="Colors disabled" />
-      )}
-
       {cell.subgrid &&
         (cell.childrenHidden ? (
           <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full" title="Children hidden ('H')" />
         ) : (
           <div className="mt-0.5 pt-0">
-            <GridNode gridData={cell.subgrid} prefix={cellPath} inheritedDisableColors={inheritedDisableColors || cell.disableColors} />
+            <GridNode gridData={cell.subgrid} prefix={cellPath} />
           </div>
         ))}
     </div>

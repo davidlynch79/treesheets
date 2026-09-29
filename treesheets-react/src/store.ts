@@ -54,6 +54,7 @@ export class TreeSheetStore {
   enterNextCell = true;
   enterAddCellAtEnd = true;
   enterAddSibling = true;
+  navigateFutureEdgeCells = true;
   helpPanelOpen = true;
 
   globalPadding = 0;
@@ -201,6 +202,11 @@ export class TreeSheetStore {
   };
   toggleEnterAddSibling = (val: boolean): void => {
     this.enterAddSibling = val;
+    this.notify();
+  };
+  toggleNavigateFutureEdgeCells = (val: boolean): void => {
+    this.navigateFutureEdgeCells = val;
+    if (!val) this.activeGapPath = null;
     this.notify();
   };
   toggleTheme = (): void => {
@@ -642,7 +648,6 @@ export class TreeSheetStore {
     const grid = this.getGridByPrefix(m[1]);
     if (!grid) return false;
     const cols = grid.rows[0] ? grid.rows[0].cells.length : 1;
-    if (cols <= 1) return false;
     const gapIdx = dir === 1 ? parseInt(m[3], 10) + 1 : parseInt(m[3], 10);
     if (gapIdx < 0 || gapIdx > cols) return false;
     this.activeGapPath = `${m[1]}_r${m[2]}_colgap${gapIdx}`;
@@ -841,7 +846,7 @@ export class TreeSheetStore {
     }
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
-      if (this.compactGaps && this.activeGapPath) {
+      if (this.navigateFutureEdgeCells && this.activeGapPath) {
         if (e.key === 'ArrowDown') this.compactVerticalMove(1);
         else if (e.key === 'ArrowUp') this.compactVerticalMove(-1);
         else if (e.key === 'ArrowRight') this.compactHorizontalMove(1);
@@ -849,7 +854,7 @@ export class TreeSheetStore {
         return;
       }
       if (e.key === 'ArrowDown' && this.tryEnterChild(e.shiftKey)) return;
-      if (this.compactGaps) {
+      if (this.navigateFutureEdgeCells) {
         if (e.key === 'ArrowDown') {
           this.compactVerticalMove(1);
           return;
@@ -866,6 +871,8 @@ export class TreeSheetStore {
           this.compactHorizontalMove(-1);
           return;
         }
+      } else if (this.activeGapPath) {
+        this.activeGapPath = null;
       }
       if (e.key === 'ArrowUp' && this.tryExitToParent(e.shiftKey)) return;
       const dir: 1 | -1 = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1;
@@ -906,6 +913,7 @@ export class TreeSheetStore {
         enterNextCell: this.enterNextCell,
         enterAddCellAtEnd: this.enterAddCellAtEnd,
         enterAddSibling: this.enterAddSibling,
+        navigateFutureEdgeCells: this.navigateFutureEdgeCells,
         helpPanelOpen: this.helpPanelOpen,
         compactGaps: this.compactGaps,
       };
@@ -961,6 +969,7 @@ export class TreeSheetStore {
           if (typeof s.enterNextCell === 'boolean') this.enterNextCell = s.enterNextCell;
           if (typeof s.enterAddCellAtEnd === 'boolean') this.enterAddCellAtEnd = s.enterAddCellAtEnd;
           if (typeof s.enterAddSibling === 'boolean') this.enterAddSibling = s.enterAddSibling;
+          if (typeof s.navigateFutureEdgeCells === 'boolean') this.navigateFutureEdgeCells = s.navigateFutureEdgeCells;
           if (typeof s.helpPanelOpen === 'boolean') this.helpPanelOpen = s.helpPanelOpen;
           if (typeof s.compactGaps === 'boolean') this.compactGaps = s.compactGaps;
           this.notify();

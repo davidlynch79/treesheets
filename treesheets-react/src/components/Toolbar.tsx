@@ -312,6 +312,10 @@ export function Toolbar() {
               <span>Enter Adds New Sibling</span>
             </label>
             <label className="flex items-center space-x-1.5 cursor-pointer">
+              <input type="checkbox" checked={store.navigateFutureEdgeCells} onChange={(e) => store.toggleNavigateFutureEdgeCells(e.target.checked)} className="accent-blue-500" />
+              <span>Navigate Future Edge Cells</span>
+            </label>
+            <label className="flex items-center space-x-1.5 cursor-pointer">
               <input type="checkbox" checked={store.lightMode} onChange={() => store.toggleTheme()} className="accent-blue-500" />
               <span>Light Mode</span>
             </label>

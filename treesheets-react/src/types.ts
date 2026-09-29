@@ -34,6 +34,7 @@ export interface SettingsExport {
   enterNextCell: boolean;
   enterAddCellAtEnd: boolean;
   enterAddSibling: boolean;
+  navigateFutureEdgeCells: boolean;
   helpPanelOpen: boolean;
   compactGaps: boolean;
 }

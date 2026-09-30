@@ -10,11 +10,82 @@ function modeButtonClass(active: boolean, kind: 'move' | 'x' | 'c'): string {
   return `${base} bg-blue-600 text-white border-blue-500 font-bold`;
 }
 
+interface SliderControlProps {
+  label: string;
+  value: number;
+  unit?: string;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (val: number) => void;
+}
+
+function SliderControl({ label, value, unit = '', min, max, step = 1, onChange }: SliderControlProps) {
+  return (
+    <div className="flex flex-col space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border">
+      <div className="flex justify-between text-[10px] text-dark-muted">
+        <span>{label}</span>
+        <span className="font-bold text-dark-text">{value}{unit}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        className="w-full accent-blue-500 h-1 bg-dark-border rounded cursor-pointer"
+      />
+    </div>
+  );
+}
+
+function CheckboxField({
+  label,
+  checked,
+  onChange,
+  className = 'flex items-center space-x-1.5 cursor-pointer',
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  className?: string;
+}) {
+  return (
+    <label className={className}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-blue-500"
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function FileButton({ label, onFileSelect }: { label: string; onFileSelect: (file: File) => void }) {
+  return (
+    <label className="flex items-center justify-center space-x-1 w-full px-1.5 py-0.5 bg-dark-surfaceHover hover:bg-dark-border rounded border border-dark-border cursor-pointer text-dark-text">
+      <span>{label}</span>
+      <input
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            onFileSelect(e.target.files[0]);
+            e.target.value = '';
+          }
+        }}
+      />
+    </label>
+  );
+}
+
 export function Toolbar() {
   const store = useStore();
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const importFileRef = useRef<HTMLInputElement>(null);
-  const importSettingsRef = useRef<HTMLInputElement>(null);
   const [exportSettingsToo, setExportSettingsToo] = useState(true);
 
   const dragState = useRef({ dragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 });
@@ -101,31 +172,15 @@ export function Toolbar() {
               Export
             </button>
           </div>
-          <label className="flex items-center space-x-1.5 px-1.5 py-0.5 bg-dark-surfaceHover rounded border border-dark-border cursor-pointer text-[10px] text-dark-text mt-0.5">
-            <input type="checkbox" checked={exportSettingsToo} onChange={(e) => setExportSettingsToo(e.target.checked)} className="accent-blue-500" />
-            <span>Export Settings File Too</span>
-          </label>
+          <CheckboxField
+            label="Export Settings File Too"
+            checked={exportSettingsToo}
+            onChange={setExportSettingsToo}
+            className="flex items-center space-x-1.5 px-1.5 py-0.5 bg-dark-surfaceHover rounded border border-dark-border cursor-pointer text-[10px] text-dark-text mt-0.5"
+          />
           <div className="grid grid-cols-2 gap-1 mt-0.5">
-            <label className="flex items-center justify-center space-x-1 w-full px-1.5 py-0.5 bg-dark-surfaceHover hover:bg-dark-border rounded border border-dark-border cursor-pointer text-dark-text">
-              <span>Import JSON</span>
-              <input
-                ref={importFileRef}
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && store.importJSON(e.target.files[0])}
-              />
-            </label>
-            <label className="flex items-center justify-center space-x-1 w-full px-1.5 py-0.5 bg-dark-surfaceHover hover:bg-dark-border rounded border border-dark-border cursor-pointer text-dark-text">
-              <span>Import Settings</span>
-              <input
-                ref={importSettingsRef}
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && store.importSettingsJSON(e.target.files[0])}
-              />
-            </label>
+            <FileButton label="Import JSON" onFileSelect={(file) => store.importJSON(file)} />
+            <FileButton label="Import Settings" onFileSelect={(file) => store.importSettingsJSON(file)} />
           </div>
         </div>
 
@@ -218,86 +273,19 @@ export function Toolbar() {
               </button>
             </div>
           </div>
-          <div className="flex flex-col space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border">
-            <div className="flex justify-between text-[10px] text-dark-muted">
-              <span>Tree Scale</span>
-              <span className="font-bold text-dark-text">{store.treeScale}%</span>
-            </div>
-            <input
-              type="range"
-              min={50}
-              max={200}
-              step={5}
-              value={store.treeScale}
-              onChange={(e) => store.updateTreeScale(parseInt(e.target.value, 10))}
-              className="w-full accent-blue-500 h-1 bg-dark-border rounded cursor-pointer"
-            />
-          </div>
-          <div className="flex flex-col space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border">
-            <div className="flex justify-between text-[10px] text-dark-muted">
-              <span>Menu Width</span>
-              <span className="font-bold text-dark-text">{store.menuWidth}px</span>
-            </div>
-            <input
-              type="range"
-              min={180}
-              max={400}
-              step={10}
-              value={store.menuWidth}
-              onChange={(e) => store.updateMenuWidth(parseInt(e.target.value, 10))}
-              className="w-full accent-blue-500 h-1 bg-dark-border rounded cursor-pointer"
-            />
-          </div>
-          <div className="flex flex-col space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border">
-            <div className="flex justify-between text-[10px] text-dark-muted">
-              <span>Help Panel Width</span>
-              <span className="font-bold text-dark-text">{store.helpWidth}px</span>
-            </div>
-            <input
-              type="range"
-              min={200}
-              max={500}
-              step={10}
-              value={store.helpWidth}
-              onChange={(e) => store.updateHelpWidth(parseInt(e.target.value, 10))}
-              className="w-full accent-blue-500 h-1 bg-dark-border rounded cursor-pointer"
-            />
-          </div>
+          <SliderControl label="Tree Scale" value={store.treeScale} unit="%" min={50} max={200} step={5} onChange={store.updateTreeScale} />
+          <SliderControl label="Menu Width" value={store.menuWidth} unit="px" min={180} max={400} step={10} onChange={store.updateMenuWidth} />
+          <SliderControl label="Help Panel Width" value={store.helpWidth} unit="px" min={200} max={500} step={10} onChange={store.updateHelpWidth} />
         </div>
 
         <div className="space-y-1 border-t border-dark-border pt-1">
           <div className="text-[9px] font-bold text-dark-muted uppercase px-0.5">Appearance & Workflow</div>
-          <div className="flex flex-col space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border">
-            <div className="flex justify-between text-[10px] text-dark-muted">
-              <span>Padding</span>
-              <span className="font-bold text-dark-text">{store.globalPadding}</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={10}
-              value={store.globalPadding}
-              onChange={(e) => store.updatePadding(parseInt(e.target.value, 10))}
-              className="w-full accent-blue-500 h-1 bg-dark-border rounded cursor-pointer"
-            />
-          </div>
+          <SliderControl label="Padding" value={store.globalPadding} min={0} max={10} onChange={store.updatePadding} />
           <div className="space-y-0.5 bg-dark-surfaceHover p-1 rounded border border-dark-border text-[10px]">
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.enterNextCell} onChange={(e) => store.toggleEnterNext(e.target.checked)} className="accent-blue-500" />
-              <span>Enter Jumps to Next Cell</span>
-            </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.enterAddCellAtEnd} onChange={(e) => store.toggleEnterAddCell(e.target.checked)} className="accent-blue-500" />
-              <span>Enter at End Adds New Cell</span>
-            </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.enterAddSibling} onChange={(e) => store.toggleEnterAddSibling(e.target.checked)} className="accent-blue-500" />
-              <span>Enter Adds New Sibling</span>
-            </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.navigateFutureEdgeCells} onChange={(e) => store.toggleNavigateFutureEdgeCells(e.target.checked)} className="accent-blue-500" />
-              <span>Navigate Future Edge Cells</span>
-            </label>
+            <CheckboxField label="Enter Jumps to Next Cell" checked={store.enterNextCell} onChange={store.toggleEnterNext} />
+            <CheckboxField label="Enter at End Adds New Cell" checked={store.enterAddCellAtEnd} onChange={store.toggleEnterAddCell} />
+            <CheckboxField label="Enter Adds New Sibling" checked={store.enterAddSibling} onChange={store.toggleEnterAddSibling} />
+            <CheckboxField label="Navigate Future Edge Cells" checked={store.navigateFutureEdgeCells} onChange={store.toggleNavigateFutureEdgeCells} />
             <div className="flex items-center space-x-2">
               <span className="text-dark-muted">Theme</span>
               <select
@@ -310,22 +298,10 @@ export function Toolbar() {
                 <option value="black">Black</option>
               </select>
             </div>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.showGridLines} onChange={() => store.toggleGridLines()} className="accent-blue-500" />
-              <span>Grid Lines</span>
-            </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.shrinkToText} onChange={() => store.toggleShrinkToText()} className="accent-blue-500" />
-              <span>Shrink to Text</span>
-            </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.compactGaps} onChange={() => store.toggleCompactGaps()} className="accent-blue-500" />
-              <span>Condensed Gaps</span>
-            </label>
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input type="checkbox" checked={store.helpPanelOpen} onChange={() => store.toggleHelpPanel()} className="accent-blue-500" />
-              <span>Help Panel</span>
-            </label>
+            <CheckboxField label="Grid Lines" checked={store.showGridLines} onChange={store.toggleGridLines} />
+            <CheckboxField label="Shrink to Text" checked={store.shrinkToText} onChange={store.toggleShrinkToText} />
+            <CheckboxField label="Condensed Gaps" checked={store.compactGaps} onChange={store.toggleCompactGaps} />
+            <CheckboxField label="Help Panel" checked={store.helpPanelOpen} onChange={store.toggleHelpPanel} />
           </div>
         </div>
       </div>

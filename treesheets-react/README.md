@@ -60,10 +60,16 @@ npm run build
 npm run preview
 ```
 
-> Note: this project was written in a sandboxed environment without internet access, so
-> `npm install` / `npm run build` could not be executed here to verify the exact dependency
-> resolution. The code is standard Vite + React + TS + Tailwind, so `npm install` on your
-> machine should work normally — just flag it if you hit a snag and I'll fix it.
+To create a self-contained HTML file with the JavaScript and CSS embedded:
+
+```bash
+npm run build:single
+```
+
+This writes `dist/treesheets-standalone.html`.
+
+The production build runs `tsc -b` followed by `vite build`; it completed successfully
+in this workspace.
 
 ## Push to GitHub
 

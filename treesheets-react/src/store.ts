@@ -145,7 +145,6 @@ export class TreeSheetStore {
   };
 
   updateEditingTextSilent = (text: string): void => {
-    this.saveState();
     const cell = this.getCurrentCell();
     if (cell) cell.text = text;
   };

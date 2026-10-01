@@ -126,63 +126,75 @@ export function compactHorizontalMove(store: TreeSheetStore, dir: 1 | -1): boole
   
 }
 
+function enterAddSibling(store: TreeSheetStore): void {
+  store.saveState();
+  const info = findGridContainingPath(store.rootData, store.activePath, 'root');
+  const m = store.activePath.match(/_r(\d+)c(\d+)$/);
+  if (info && info.grid && m) {
+    const rIdx = parseInt(m[1], 10);
+    const cIdx = parseInt(m[2], 10);
+    const cols = info.grid.rows[0] ? info.grid.rows[0].cells.length : 1;
+    const newCells = Array.from({ length: cols }, () => newEmptyCell());
+    info.grid.rows.splice(rIdx + 1, 0, { cells: newCells });
+    const prefixMatch = store.activePath.match(/^(.*)_r\d+c\d+$/);
+    if (prefixMatch) {
+      store.activePath = `${prefixMatch[1]}_r${rIdx + 1}c${cIdx}`;
+      store.selectedPaths = new Set([store.activePath]);
+      store.isEditing = true;
+    }
+  }
+  store.notify();
+}
+
+function enterMoveToNext(store: TreeSheetStore, all: string[], idx: number): void {
+  if (idx !== -1 && idx < all.length - 1) {
+    store.activePath = all[idx + 1];
+    store.selectedPaths = new Set([store.activePath]);
+    store.isEditing = true;
+  } else if (store.enterAddCellAtEnd && idx === all.length - 1) {
+    store.saveState();
+    const info = findGridContainingPath(store.rootData, store.activePath, 'root');
+    if (info && info.grid) {
+      const cols = info.grid.rows[0] ? info.grid.rows[0].cells.length : 1;
+      info.grid.rows.push({ cells: Array.from({ length: cols }, () => newEmptyCell()) });
+      const allUpdated = getAllCellPaths(store.rootData);
+      store.activePath = allUpdated[allUpdated.length - 1];
+      store.selectedPaths = new Set([store.activePath]);
+      store.isEditing = true;
+    }
+  } else {
+    store.isEditing = false;
+  }
+  store.notify();
+}
+
+function enterPreviousOrStop(store: TreeSheetStore, all: string[], idx: number): void {
+  if (idx > 0) {
+    store.activePath = all[idx - 1];
+    store.selectedPaths = new Set([store.activePath]);
+    store.isEditing = true;
+  } else {
+    store.isEditing = false;
+  }
+  store.notify();
+}
+
 export function handleEditorKeyDown(store: TreeSheetStore, e: { key: string; preventDefault: () => void }, shiftKey: boolean, ctrlKey: boolean): void {
     const all = getAllCellPaths(store.rootData);
     const idx = all.indexOf(store.activePath);
     if (e.key === 'Enter') {
       if (store.enterAddSibling && !shiftKey) {
         e.preventDefault();
-        store.saveState();
-        const info = findGridContainingPath(store.rootData, store.activePath, 'root');
-        const m = store.activePath.match(/_r(\d+)c(\d+)$/);
-        if (info && info.grid && m) {
-          const rIdx = parseInt(m[1], 10);
-          const cIdx = parseInt(m[2], 10);
-          const cols = info.grid.rows[0] ? info.grid.rows[0].cells.length : 1;
-          const newCells = Array.from({ length: cols }, () => newEmptyCell());
-          info.grid.rows.splice(rIdx + 1, 0, { cells: newCells });
-          const prefixMatch = store.activePath.match(/^(.*)_r\d+c\d+$/);
-          if (prefixMatch) {
-            store.activePath = `${prefixMatch[1]}_r${rIdx + 1}c${cIdx}`;
-            store.selectedPaths = new Set([store.activePath]);
-            store.isEditing = true;
-          }
-        }
-        store.notify();
+        enterAddSibling(store);
         return;
       }
       if (store.enterNextCell && !shiftKey) {
         e.preventDefault();
-        if (idx !== -1 && idx < all.length - 1) {
-          store.activePath = all[idx + 1];
-          store.selectedPaths = new Set([store.activePath]);
-          store.isEditing = true;
-        } else if (store.enterAddCellAtEnd && idx === all.length - 1) {
-          store.saveState();
-          const info = findGridContainingPath(store.rootData, store.activePath, 'root');
-          if (info && info.grid) {
-            const cols = info.grid.rows[0] ? info.grid.rows[0].cells.length : 1;
-            info.grid.rows.push({ cells: Array.from({ length: cols }, () => newEmptyCell()) });
-            const allUpdated = getAllCellPaths(store.rootData);
-            store.activePath = allUpdated[allUpdated.length - 1];
-            store.selectedPaths = new Set([store.activePath]);
-            store.isEditing = true;
-          }
-        } else {
-          store.isEditing = false;
-        }
-        store.notify();
+        enterMoveToNext(store, all, idx);
         return;
       } else if (store.enterNextCell && shiftKey) {
         e.preventDefault();
-        if (idx > 0) {
-          store.activePath = all[idx - 1];
-          store.selectedPaths = new Set([store.activePath]);
-          store.isEditing = true;
-        } else {
-          store.isEditing = false;
-        }
-        store.notify();
+        enterPreviousOrStop(store, all, idx);
         return;
       } else if (!store.enterNextCell || ctrlKey) {
         store.isEditing = false;
@@ -254,6 +266,14 @@ export function handleGlobalKeyDown(store: TreeSheetStore, e: KeyboardEvent, isT
     }
     if (isTyping) return;
 
+    if ((e.ctrlKey || e.metaKey) && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      store.navigateGridByDelta(
+        e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0,
+        e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0
+      );
+      return;
+    }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       store.menuClearCell();
@@ -273,6 +293,7 @@ export function handleGlobalKeyDown(store: TreeSheetStore, e: KeyboardEvent, isT
       store.notify();
       return;
     }
+    if (!(e.ctrlKey || e.metaKey)) {
     if (e.key.toLowerCase() === 'h') {
       e.preventDefault();
       store.toggleChildrenHiddenOnActive();
@@ -293,13 +314,6 @@ export function handleGlobalKeyDown(store: TreeSheetStore, e: KeyboardEvent, isT
       store.menuToggleNest();
       return;
     }
-    if ((e.ctrlKey || e.metaKey) && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-      e.preventDefault();
-      store.navigateGridByDelta(
-        e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0,
-        e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0
-      );
-      return;
     }
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
